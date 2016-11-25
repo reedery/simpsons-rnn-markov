@@ -76,6 +76,7 @@ filepath="weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
+
 print "training model"
 #fit the model
 model.fit(X, y_mat, batch_size=64, nb_epoch=200, callbacks=callbacks_list)  #increase num epoch once we get this working well
