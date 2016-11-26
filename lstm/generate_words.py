@@ -1,10 +1,12 @@
 import numpy as np
+import sys
 import re
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.layers import LSTM
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
 
 """
 TODO 
@@ -12,7 +14,6 @@ add parentheses to regex so stage directions remain in the data
 fix spaces before punctuation marks in output
 """
 print "reading data"
-#textfile = "data.txt"
 textfile = "../gpu_sized.txt"
 textfile = open(textfile).read().lower()
 #badtext = '/;-*^%_@~:,.()!?' #characters to srip from the text
@@ -75,17 +76,38 @@ model.add(Dropout(0.2))
 model.add(LSTM(512))
 model.add(Dropout(0.2))
 model.add(Dense(y_mat.shape[1], activation='softmax'))
-#uncomment/update if you want to use old weights as a starting point for training
-#filename = "/Users/jamesledoux/Desktop/weights-improvement-26-1.8959.hdf5"
-#model.load_weights(filename)
+
+# load the network weights
+filename = "weights-improvement-32-0.2376.hdf5"
+model.load_weights(filename)
 model.compile(loss='categorical_crossentropy', optimizer='adam')
 
-# define the checkpoint
-filepath="weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
-checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-callbacks_list = [checkpoint]
+# pick a random seed
+start = np.random.randint(0, len(X_mat) - 1)
+pattern = X_mat[start]
+# a random seed taken from the text
+print "Seed:"
+print "\"", ''.join([id_to_word[value] for value in pattern]), "\""
+
+# trying out a custom seed
+#pattern = "                                                             to be or not to be that is the question"
+#print pattern
+#pattern = [int_to_char[c] for c in pattern]
+
+#generate characters
+for i in range(1000):
+    x = np.reshape(pattern, (1, len(pattern), 1))
+    x = np.eye(n_words)[x]
+    x = np.reshape(x, (1, sequence_length, n_words))
+    #x = x / float(num_vocab)
+    prediction = model.predict(x, verbose=0)
+    index = np.argmax(prediction)
+    result = id_to_word[index]
+    seq_in = [id_to_word[value] for value in pattern]
+    sys.stdout.write(result)
+    #if result not in [",", ".", ":", "?", "!", "\n"]:
+    sys.stdout.write(" ")
+    pattern.append(index)
+    pattern = pattern[1:len(pattern)]
 
 
-print "training model"
-#fit the model
-model.fit(X, y_mat, batch_size=256, nb_epoch=200, callbacks=callbacks_list)  #increase num epoch once we get this working well
