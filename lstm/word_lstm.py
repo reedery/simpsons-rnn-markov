@@ -5,6 +5,7 @@ from keras.layers import Dense, Dropout
 from keras.layers import LSTM
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint
+import matplotlib.pyplot as plt
 
 """
 TODO 
@@ -12,8 +13,8 @@ add parentheses to regex so stage directions remain in the data
 fix spaces before punctuation marks in output
 """
 print "reading data"
-#textfile = "data.txt"
-textfile = "../gpu_sized.txt"
+textfile = "../tiny.txt"
+#textfile = "../gpu_sized.txt"
 textfile = open(textfile).read().lower()
 #badtext = '/;-*^%_@~:,.()!?' #characters to srip from the text
 #textfile = [word.translate(None, badtext) for word in textfile]
@@ -81,11 +82,28 @@ model.add(Dense(y_mat.shape[1], activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam')
 
 # define the checkpoint
-filepath="weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
+filepath="test-weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
 
 print "training model"
 #fit the model
-model.fit(X, y_mat, batch_size=256, nb_epoch=200, callbacks=callbacks_list)  #increase num epoch once we get this working well
+#note: using below method to store / plot results. fix batch size param later for better result
+#model.fit(X, y_mat, batch_size=256, nb_epoch=200, callbacks=callbacks_list)  #increase num epoch once we get this working well
+history = model.fit(X, y_mat, validation_split=0.20, nb_epoch=10, batch_size=64, verbose=1, callbacks=callbacks_list)
+
+print(history.history.keys())
+# summarize history for loss
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+
+
+
+#
