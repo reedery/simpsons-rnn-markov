@@ -6,6 +6,8 @@ from keras.layers import LSTM
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
+from datetime import datetime
+import json 
 
 """
 TODO 
@@ -89,9 +91,16 @@ callbacks_list = [checkpoint]
 
 print "training model"
 #fit the model
-#note: using below method to store / plot results. fix batch size param later for better result
+#note: using small values here to test locally. fix nb_epoch when running on gpu. 
 #model.fit(X, y_mat, batch_size=256, nb_epoch=200, callbacks=callbacks_list)  #increase num epoch once we get this working well
-history = model.fit(X, y_mat, validation_split=0.20, nb_epoch=10, batch_size=64, verbose=1, callbacks=callbacks_list)
+start_time = datetime.now()
+history = model.fit(X, y_mat, validation_split=0.20, nb_epoch=2, batch_size=64, verbose=1, callbacks=callbacks_list)
+total_time = datetime.now() - start_time
+print "training time: " + str(total_time)
+
+print "saving history"
+with open('training_history.json', 'w') as f:
+    json.dump(history.history, f)
 
 print(history.history.keys())
 # summarize history for loss
